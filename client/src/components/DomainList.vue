@@ -29,28 +29,18 @@
       <div class="card">
         <div class="card-body">
           <ul class="list-group">
-            <li
-              class="list-group-item"
-              v-for="domain in domains"
-              :key="domain.name"
-            >
+            <li class="list-group-item" v-for="domain in domains" :key="domain.name">
               <div class="row">
                 <div class="col-md-6">{{ domain.name }}</div>
                 <div class="col-md-3">
-                  <span v-if="domain.available" class="badge badge-success"
-                    >Disponível</span
-                  >
+                  <span v-if="domain.available" class="badge badge-success">Disponível</span>
                   <span v-else class="badge badge-danger">Indisponível</span>
                 </div>
                 <div class="col-md-3 text-right">
                   <button class="btn btn-info mr-1" @click="openDomain(domain)">
                     <span class="fa fa-search"></span>
                   </button>
-                  <a
-                    class="btn btn-info"
-                    :href="domain.checkout"
-                    target="_blank"
-                  >
+                  <a class="btn btn-info" :href="domain.checkout" target="_blank">
                     <span class="fa fa-shopping-cart"></span>
                   </a>
                 </div>
@@ -86,11 +76,6 @@ export default {
         path: `/domains/${domain.name}`
       });
     }
-  },
-  created() {
-    Promise.all([this.getItems("prefix"), this.getItems("sufix")]).then(() => {
-      this.generateDomains();
-    });
   }
 };
 </script>

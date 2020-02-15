@@ -29,6 +29,10 @@ const store = new Vuex.Store({
     setItems(state, payload) {
       const { type, items } = payload;
       state.items[type] = items;
+    },
+    setDomains(state, payload) {
+      const { domains } = payload;
+      state.domains = domains;
     }
   },
   actions: {
@@ -82,6 +86,7 @@ const store = new Vuex.Store({
       });
     },
     async getItems(context, payload) {
+      console.log("getItems");
       const type = payload;
       return axios({
         url: "http://localhost:3000",
@@ -113,6 +118,7 @@ const store = new Vuex.Store({
         });
     },
     async generateDomains(context) {
+      console.log("generateDomains");
       axios({
         url: "http://localhost:3000",
         method: "post",
@@ -129,12 +135,17 @@ const store = new Vuex.Store({
         }
       }).then(res => {
         const query = res.data;
-        context.state.domains = query.data.domains;
+        context.commit("setDomains", { domains: query.data.domains });
       });
     }
   }
 });
-
+Promise.all([
+  store.dispatch("getItems", "prefix"),
+  store.dispatch("getItems", "sufix")
+]).then(() => {
+  store.dispatch("generateDomains");
+});
 const router = new VueRouter({
   mode: "history",
   routes: [

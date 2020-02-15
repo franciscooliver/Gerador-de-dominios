@@ -1,4 +1,6 @@
 const { ApolloServer } = require("apollo-server");
+const database = require("./database");
+const service = require("./service");
 const dns = require("dns");
 const port = 3000;
 
@@ -34,15 +36,6 @@ const typeDefs = `
     }
 `;
 
-const items = [
-  { id: 1, type: "prefix", description: "Air" },
-  { id: 2, type: "prefix", description: "Jet" },
-  { id: 3, type: "prefix", description: "Flight" },
-  { id: 4, type: "sufix", description: "Hub" },
-  { id: 5, type: "sufix", description: "Station" },
-  { id: 6, type: "sufix", description: "Mart" }
-];
-
 const isDomainAvailable = url => {
   return new Promise((resolve, reject) => {
     dns.resolve(url, error => {
@@ -54,26 +47,29 @@ const isDomainAvailable = url => {
 
 const resolvers = {
   Query: {
-    items(_, args) {
+    async items(_, args) {
+      const items = await service.getItemsByType(args.type);
       return items.filter(item => item.type === args.type);
     }
   },
   Mutation: {
-    saveItem(_, args) {
+    async saveItem(_, args) {
       const item = args.item;
-      item.id = Math.floor(Math.random() * 1000);
-      items.push(item);
-      return item;
+      // item.id = Math.floor(Math.random() * 1000);
+      // items.push(item);
+      const results = await service.saveItem(item);
+      const newItem = await service.getItemById(results.insertId);
+      console.log(newItem[0]);
+      return newItem[0];
     },
-    deleteItem(_, args) {
+    async deleteItem(_, args) {
       const { id } = args;
-      const item = items.find(item => item.id === id);
-      if (!item) return false;
-      items.splice(items.indexOf(item), 1);
+      const item = await service.deleteItem(id);
       return true;
     },
     async generateDomains() {
       const domains = [];
+      const items = await service.getItems();
 
       for (const prefix of items.filter(item => item.type === "prefix")) {
         for (const sufix of items.filter(item => item.type === "sufix")) {
@@ -94,7 +90,6 @@ const resolvers = {
     async generateDomain(_, args) {
       const { name } = args;
       const domains = [];
-      console.log(name);
       const extensions = [".com.br", ".com", ".net", ".org"];
       for (const extension of extensions) {
         const url = name.toLowerCase();
